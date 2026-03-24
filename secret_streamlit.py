@@ -1,46 +1,86 @@
+# Solução
+
+# O que entra?
+# - número secreto entre 1 e 20
+# - palpite do jogador
+# - até 5 tentativas
+
+# O que fazer com cada tentativa?
+# - receber o palpite
+# - comparar com o número secreto
+# - informar se foi muito alto ou muito baixo
+# - se acertar, encerrar o loop
+
+# O que guardar no processo?
+# - número secreto
+# - palpite atual
+# - número de tentativas
+
+# O que devolver no final?
+# - mensagem de vitória se acertar
+# - ou mensagem de derrota se não acertar em 5 tentativas
+
+
 import random
 import streamlit as st
 
+st.title("JOGO DA ADIVINHANÇÃO")
+st.write("Você tem 5 tentativas para acertar o número secreto")
 
 if "numero_secreto" not in st.session_state:
     st.session_state.numero_secreto = random.randint(1, 20)
 
-if "tentativa" not in st.session_state:
-    st.session_state.tentativa = 0
+if "tentativas" not in st.session_state:
+    st.session_state.tentativas = 5
 
-if "fim" not in st.session_state:
-    st.session_state.fim = False
+if "fim_de_jogo" not in st.session_state:
+    st.session_state.fim_de_jogo = False
 
-st.write("Jogo de adivinhação.\n")
-st.write("Você tem 5 tentativas")
+if "mensagem" not in st.session_state:
+    st.session_state.mensagem = ""
 
-numero_escolhido = st.text_input("Por favor, escolha um número entre 1 e 20: ")
+if "numero_digitado" not in st.session_state:
+    st.session_state.numero_digitado = None
 
-if st.button("Enviar") and st.session_state.fim == False:
-    if numero_escolhido == "":
-        st.write("Digite um número")
-    else:
-        numero_escolhido = int(numero_escolhido)
-        st.session_state.tentativa += 1
+st.write(f"Resta(m): {st.session_state.tentativas} tentativa(s)")
+
+numero_escolhido = st.number_input(
+    "Por favor, escolha um número entre 1 e 20:",
+    min_value=1,
+    max_value=20,
+    value=None,
+    step=1,
+    placeholder="Digite um número"
+)
+
+if st.button("Enviar") and not st.session_state.fim_de_jogo:
+    if numero_escolhido is not None:
+        st.session_state.numero_digitado = numero_escolhido
 
         if numero_escolhido == st.session_state.numero_secreto:
-            st.write("Parabéns, você acertou")
-            st.session_state.fim = True
+            st.session_state.mensagem = "Parabéns, você acertou"
+            st.session_state.fim_de_jogo = True
         elif numero_escolhido < st.session_state.numero_secreto:
-            st.write(f"Você digitou {numero_escolhido}")
-            st.write("Muito baixo")
+            st.session_state.mensagem = f"Você digitou {numero_escolhido}\n\nMuito baixo"
+            st.session_state.tentativas -= 1
         else:
-            st.write(f"Você digitou {numero_escolhido}")
-            st.write("Muito alto")
+            st.session_state.mensagem = f"Você digitou {numero_escolhido}\n\nMuito alto"
+            st.session_state.tentativas -= 1
 
-        if st.session_state.tentativa == 5 and st.session_state.fim == False:
-            st.write("Fim de jogo")
-            st.session_state.fim = True
+        if st.session_state.tentativas == 0 and not st.session_state.fim_de_jogo:
+            st.session_state.mensagem = "Fim de jogo"
+            st.session_state.fim_de_jogo = True
 
-if st.session_state.fim == True:
+if st.session_state.mensagem:
+    st.write(st.session_state.mensagem)
+
+if st.session_state.fim_de_jogo:
     st.write(f"O número secreto foi: {st.session_state.numero_secreto}")
 
-if st.button("Reiniciar jogo"):
-    st.session_state.numero_secreto = random.randint(1, 20)
-    st.session_state.tentativa = 0
-    st.session_state.fim = False
+    if st.button("Jogar novamente"):
+        st.session_state.numero_secreto = random.randint(1, 20)
+        st.session_state.tentativas = 5
+        st.session_state.fim_de_jogo = False
+        st.session_state.mensagem = ""
+        st.session_state.numero_digitado = None
+        st.rerun()
